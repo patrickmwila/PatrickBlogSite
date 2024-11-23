@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block head %}
+{{ super() }}
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+<script>hljs.highlightAll();</script>
+<style>
+    .post-content img {
+        max-width: 100%;
+        height: auto;
+    }
+    .post-meta {
+        color: #6c757d;
+        margin-bottom: 2rem;
+    }
+    .post-content {
+        font-size: 1.1rem;
+        line-height: 1.7;
+    }
+    pre {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.25rem;
+        margin: 1rem 0;
+    }
+    code {
+        font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+    .post-card {
+        border-radius: 0.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: box-shadow 0.3s ease-in-out;
+    }
+    .post-card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    .post-header {
+        background-color: #fff;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        border-top-left-radius: 0.5rem;
+        border-top-right-radius: 0.5rem;
+        padding: 2rem;
+    }
+    .post-body {
+        background-color: #fff;
+        border-bottom-left-radius: 0.5rem;
+        border-bottom-right-radius: 0.5rem;
+        padding: 2rem;
+    }
+    .post-navigation {
+        margin-top: 4rem;
+        padding-top: 2rem;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .nav-button {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.75rem 1.5rem;
+        border-radius: 5px;
+        background-color: var(--primary-color);
+        color: white;
+        text-decoration: none;
+        transition: all 0.1s ease-in-out;
+    }
+
+    .nav-button:hover {
+        background-color: #2C3E50;
+        transform: translateY(-2px);
+        color: white;
+    }
+
+    .nav-button i {
+        font-size: 1.1rem;
+    }
+
+    .nav-button.prev i {
+        margin-right: 0.5rem;
+    }
+
+    .nav-button.next i {
+        margin-left: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <article class="post-card">
+        <header class="post-header">
+            <h1 class="display-4">{{ post.title }}</h1>
+            
+            <div class="post-meta">
+                <span>
+                    <i class="fas fa-calendar-alt"></i>
+                    Posted on {{ post.date_posted.strftime('%B %d, %Y') }}
+                </span>
+                {% if post.last_modified and post.last_modified != post.date_posted %}
+                <span class="ms-3">
+                    <i class="fas fa-edit"></i>
+                    Updated on {{ post.last_modified.strftime('%B %d, %Y') }}
+                </span>
+                {% endif %}
+                <span class="ms-3">
+                    <i class="fas fa-folder"></i>
+                    <a href="{{ url_for('blog', category=post.category.id) }}" class="text-decoration-none">
+                        {{ post.category.name }}
+                    </a>
+                </span>
+            </div>
+
+            {% if post.tags %}
+            <div class="mb-4">
+                <i class="fas fa-tags"></i>
+                {% for tag in post.tags %}
+                <a href="{{ url_for('blog', tag=tag.id) }}" 
+                   class="badge text-decoration-none me-1" 
+                   style="background-color: #34495E;">
+                    {{ tag.name }}
+                </a>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if post.summary %}
+            <div class="lead mb-4">
+                {{ post.summary }}
+            </div>
+            {% endif %}
+        </header>
+
+        <div class="post-body">
+            <div class="post-content">
+                {{ post.content|safe }}
+            </div>
+
+            <!-- Post Navigation -->
+            <div class="post-navigation">
+                <div class="row justify-content-between">
+                    <div class="col-auto">
+                        <a href="{{ url_for('blog') }}" class="nav-button prev">
+                            <i class="fas fa-arrow-left"></i>
+                            Back to Blog
+                        </a>
+                    </div>
+                    {% if next_post %}
+                    <div class="col-auto">
+                        <a href="{{ url_for('post', post_id=next_post.id) }}" class="nav-button next">
+                            Next Post
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if current_user.is_authenticated %}
+            <div class="mt-4">
+                <a href="{{ url_for('admin.edit_post', post_id=post.id) }}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Edit Post
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </article>
+
+    <nav class="my-4">
+        <div class="row">
+            {% if prev_post %}
+            <div class="col-md-6">
+                <a href="{{ url_for('post', post_id=prev_post.id) }}" class="text-decoration-none">
+                    <i class="fas fa-arrow-left"></i> {{ prev_post.title }}
+                </a>
+            </div>
+            {% endif %}
+            
+            {% if next_post %}
+            <div class="col-md-6 text-end">
+                <a href="{{ url_for('post', post_id=next_post.id) }}" class="text-decoration-none">
+                    {{ next_post.title }} <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+</div>
+{% endblock %}

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" class="h-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} - Patrick's Portfolio</title>
+    <!-- Favicon -->
+<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+<link rel="shortcut icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        main {
+            flex: 1 0 auto;
+        }
+
+        .footer {
+            flex-shrink: 0;
+            background-color: #f8f9fa;
+            padding: 3rem 0;
+            margin-top: auto;
+            border-top: 1px solid #dee2e6;
+        }
+        .footer-logo h4 {
+            font-weight: 600;
+            color: #333;
+        }
+        .footer-contact a {
+            color: #666;
+            transition: color 0.3s ease;
+        }
+        .footer-contact a:hover {
+            color: #007bff;
+        }
+        .social-links {
+            margin-top: 1.5rem;
+        }
+        .social-links a {
+            color: #666;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+        .social-links a:hover {
+            color: #007bff;
+            transform: translateY(-2px);
+        }
+        .contact-info i {
+            width: 20px;
+            text-align: center;
+        }
+        .social-links a {
+            color: #333;
+            margin: 0 10px;
+            font-size: 1.2rem;
+            transition: color 0.3s ease;
+        }
+        .social-links a:hover {
+            color: #007bff;
+        }
+    </style>
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('home') }}">
+                <!-- <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Patrick Mwila Logo" height="60"> -->
+                 Patrick
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'home' %}active{% endif %}" href="{{ url_for('home') }}">
+                            <i class="fas fa-home me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'blog' %}active{% endif %}" href="{{ url_for('blog') }}">Blog</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'projects' %}active{% endif %}" href="{{ url_for('projects') }}">Projects</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'about' %}active{% endif %}" href="{{ url_for('about') }}">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'contact' %}active{% endif %}" href="{{ url_for('contact') }}">Contact</a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Admin
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('admin.manage_posts') }}">Manage Posts</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin.manage_projects') }}">Manage Projects</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-4">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-info">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row text-center justify-content-center mb-4">
+                <div class="col-md-4 mb-4">
+                    <div class="footer-logo">
+                        <h4 class="mb-2">Patrick Mwila</h4>
+                        <p class="mb-0">ICT Innovations & Administrator, ICTAZ</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="footer-copyright">
+                        <p class="mb-1">&copy; {{ current_year }} Patrick Mwila</p>
+                        <p class="mb-0">All Rights Reserved</p>
+                    </div>
+                    <div class="social-links">
+                        <a href="https://github.com/yourusername" target="_blank" title="GitHub" class="mx-2">
+                            <i class="fab fa-github fa-lg"></i>
+                        </a>
+                        <a href="https://facebook.com/yourusername" target="_blank" title="Facebook" class="mx-2">
+                            <i class="fab fa-facebook fa-lg"></i>
+                        </a>
+                        <a href="https://linkedin.com/in/yourusername" target="_blank" title="LinkedIn" class="mx-2">
+                            <i class="fab fa-linkedin fa-lg"></i>
+                        </a>
+                        <a href="https://twitter.com/yourusername" target="_blank" title="Twitter" class="mx-2">
+                            <i class="fab fa-twitter fa-lg"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="footer-contact">
+                        <div class="contact-info mb-3">
+                            <p class="mb-1">
+                                <i class="fas fa-envelope me-2"></i>
+                                <a href="mailto:patrickmwila.org@gmail.com" class="text-decoration-none">patrickmwila.org@gmail.com</a>
+                            </p>
+                            <p class="mb-0">
+                                <i class="fas fa-phone me-2"></i>
+                                <a href="tel:+260972338617" class="text-decoration-none">+260 972 338 617</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all video containers
+            document.querySelectorAll('.video-container').forEach(container => {
+                const video = container.querySelector('video');
+                const overlay = container.querySelector('.video-overlay');
+                let isPlaying = false;
+
+                // Click handler for play/pause
+                container.addEventListener('click', function(e) {
+                    if (!isPlaying) {
+                        video.play();
+                        container.classList.add('playing');
+                        isPlaying = true;
+                        video.controls = true;
+                    } else {
+                        // Only pause if clicking outside the video controls
+                        if (e.target === container || e.target === overlay || e.target.closest('.video-overlay')) {
+                            video.pause();
+                            container.classList.remove('playing');
+                            isPlaying = false;
+                            video.controls = false;
+                        }
+                    }
+                });
+
+                // Reset when video ends
+                video.addEventListener('ended', function() {
+                    container.classList.remove('playing');
+                    isPlaying = false;
+                    video.controls = false;
+                });
+
+                // Preview on hover (if not already playing)
+                container.addEventListener('mouseenter', function() {
+                    if (!isPlaying) {
+                        video.muted = true;
+                        video.play();
+                    }
+                });
+
+                container.addEventListener('mouseleave', function() {
+                    if (!isPlaying) {
+                        video.pause();
+                        video.currentTime = 0;
+                    }
+                });
+
+                // Handle video errors
+                video.addEventListener('error', function() {
+                    console.error('Error playing video:', video.error);
+                    container.classList.remove('playing');
+                    isPlaying = false;
+                });
+            });
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

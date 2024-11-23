@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Post{% endblock %}
+
+{% block head %}
+<script src="https://cdn.tiny.cloud/1/hpq2lkcagwnqx0sgban81itg04cqwl7aylw5x9elq1jdasso/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+  tinymce.init({
+    selector: '#content',
+    plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount code',
+    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat | code',
+    height: 500,
+    menubar: true,
+    file_picker_types: 'image',
+    automatic_uploads: true,
+    images_upload_url: '/admin/upload-image',
+    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 16px; }',
+    codesample_languages: [
+        { text: 'Python', value: 'python' },
+        { text: 'JavaScript', value: 'javascript' },
+        { text: 'HTML/XML', value: 'markup' },
+        { text: 'CSS', value: 'css' },
+        { text: 'Bash', value: 'bash' },
+        { text: 'Shell', value: 'shell' }
+    ],
+    content_css: false,
+    skin: 'oxide',
+    relative_urls: false,
+    remove_script_host: false,
+    document_base_url: window.location.origin + '/'
+  });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Post</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="title" name="title" value="{{ post.title }}" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="summary" class="form-label">Summary</label>
+            <textarea class="form-control" id="summary" name="summary" rows="2">{{ post.summary }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="category" class="form-label">Category</label>
+            <select class="form-select" id="category" name="category" required>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if category.id == post.category_id %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+            <div class="mt-2">
+                <a href="{{ url_for('admin.create_category') }}" class="btn btn-sm btn-outline-secondary">Create New Category</a>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="tags" class="form-label">Tags</label>
+            <input type="text" class="form-control" id="tags" name="tags" 
+                   value="{{ post.tags|map(attribute='name')|join(', ') }}"
+                   placeholder="Enter tags separated by commas">
+            <small class="form-text text-muted">Separate tags with commas (e.g., Python, Flask, Web Development)</small>
+        </div>
+
+        <div class="mb-3">
+            <label for="content" class="form-label">Content</label>
+            <textarea class="form-control" id="content" name="content">{{ post.content }}</textarea>
+        </div>
+
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="is_draft" name="is_draft" {% if post.is_draft %}checked{% endif %}>
+            <label class="form-check-label" for="is_draft">Save as Draft</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Update Post</button>
+        <a href="{{ url_for('admin.manage_posts') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

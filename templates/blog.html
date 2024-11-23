@@ -1,0 +1,867 @@
+{% extends "base.html" %}
+
+{% block title %}Blog{% endblock %}
+
+{% block head %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% endblock %}
+
+{% block styles %}
+<style>
+:root {
+    --primary-color: #34495E;
+    --primary-hover: #2c3e50;
+    --accent-color: #495057;
+    --text-muted: #6c757d;
+    --border-color: #dee2e6;
+    --bg-light: #f8f9fa;
+    --bg-dark: #212529;
+    --text-light: #ffffff;
+}
+
+/* Base styles */
+.card {
+    border-color: var(--border-color);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    background-color: var(--primary-color) !important;
+    color: var(--text-light) !important;
+    font-weight: 600;
+    border-bottom: none;
+    padding: 1rem 1.5rem;
+}
+
+.card-header h5 {
+    color: var(--text-light) !important;
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.card-header .btn-light {
+    color: var(--primary-color);
+    background-color: var(--text-light);
+    border: none;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.1s ease;
+}
+
+.card-header .btn-light:hover {
+    background-color: var(--bg-light);
+    transform: translateY(-1px);
+}
+
+/* Filter Sections */
+.filter-section {
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0;
+}
+
+.filter-section:last-child {
+    border-bottom: none;
+}
+
+.filter-section h5 {
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    padding: 0.75rem 1.5rem;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+/* Category List */
+.category-list {
+    max-height: 300px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.category-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.category-list::-webkit-scrollbar-track {
+    background: var(--bg-light);
+}
+
+.category-list::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 4px;
+}
+
+.list-group-item {
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.75rem 1.5rem;
+    color: var(--primary-color);
+    transition: all 0.1s ease;
+    background-color: transparent;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
+.list-group-item:hover {
+    background-color: rgba(52, 73, 94, 0.1);
+}
+
+.list-group-item.active {
+    background-color: var(--primary-color) !important;
+    color: var(--text-light) !important;
+    border-color: var(--primary-color);
+}
+
+.list-group-item a {
+    color: inherit;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+}
+
+.list-group-item .badge {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.65rem;
+    transition: all 0.1s ease;
+}
+
+.list-group-item:not(.active) .badge {
+    background-color: var(--primary-color) !important;
+    color: var(--text-light) !important;
+}
+
+.list-group-item.active .badge {
+    background-color: var(--text-light) !important;
+    color: var(--primary-color) !important;
+}
+
+/* Category Actions */
+.category-actions .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.category-actions .btn-outline-danger {
+    border-color: transparent;
+}
+
+.category-actions .btn-outline-danger:hover {
+    background-color: #dc3545;
+    color: var(--text-light);
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+    .post-card {
+        margin-bottom: 1rem !important;
+    }
+    
+    .search-container {
+        position: sticky;
+        top: 0;
+        z-index: 1020;
+        background: white;
+        padding: 10px 0;
+        margin: -1rem 0 1rem 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .filters-btn {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1030;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+        transition: transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+    }
+    
+    .filters-btn:hover {
+        background-color: var(--primary-hover) !important;
+        border-color: var(--primary-hover) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    }
+    
+    .filters-btn:active {
+        transform: translateY(0);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .filters-btn i {
+        font-size: 1.5rem;
+        margin: 0 !important;
+        color: var(--text-light);
+    }
+}
+
+/* Mobile Modal */
+#filtersModal .modal-content {
+    border: none;
+}
+
+#filtersModal .modal-header {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+    border: none;
+}
+
+#filtersModal .modal-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+#filtersModal .modal-body {
+    padding: 1rem;
+}
+
+#filtersModal .card {
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+#filtersModal .list-group-item {
+    border-left: none;
+    border-right: none;
+}
+
+#filtersModal .list-group-item:first-child {
+    border-top: none;
+}
+
+/* Post Cards */
+.post-card {
+    transition: transform 0.1s ease-in-out;
+}
+
+.post-card:hover {
+    transform: translateY(-2px);
+}
+
+.card-title a {
+    color: var(--primary-color);
+}
+
+.card-title a:hover {
+    color: var(--accent-color);
+}
+
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* Search Bar */
+.search-input {
+    border-color: var(--primary-color);
+}
+
+.search-btn {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.search-btn:hover {
+    background-color: var(--primary-color);
+    color: var(--text-light);
+}
+
+/* Global Transitions */
+a, button, .btn {
+    transition: all 0.1s ease-in-out !important;
+}
+
+/* Navigation Links */
+.nav-link {
+    position: relative;
+    transition: color 0.1s ease-in-out !important;
+}
+
+.nav-link:after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 0;
+    left: 50%;
+    background-color: var(--primary-color);
+    transition: all 0.1s ease-in-out;
+    transform: translateX(-50%);
+}
+
+.nav-link:hover:after {
+    width: 100%;
+}
+
+/* Category Items */
+.category-list .list-group-item {
+    transition: all 0.1s ease-in-out !important;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+.category-list .list-group-item:hover {
+    transform: translateY(-2px);
+}
+
+/* Post Cards */
+.post-card {
+    transition: all 0.1s ease-in-out !important;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}
+
+.post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+}
+
+/* Read More Links */
+.read-more-link {
+    position: relative;
+    transition: all 0.1s ease-in-out !important;
+}
+
+.read-more-link:after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background-color: var(--primary-color);
+    transition: width 0.1s ease-in-out;
+}
+
+.read-more-link:hover:after {
+    width: 100%;
+}
+
+/* Filter Button */
+.filters-btn {
+    transition: all 0.1s ease-in-out !important;
+}
+
+.filters-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important;
+}
+
+/* Category Badges */
+.badge {
+    transition: all 0.1s ease-in-out !important;
+}
+
+.badge:hover {
+    transform: scale(1.05);
+}
+
+/* Buttons */
+.btn {
+    transition: all 0.1s ease-in-out !important;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+/* Search Input */
+.search-input {
+    transition: all 0.1s ease-in-out !important;
+}
+
+.search-input:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1) !important;
+}
+
+/* Page Load Transition */
+.fade-enter {
+    opacity: 0;
+}
+
+.fade-enter-active {
+    opacity: 1;
+    transition: opacity 0.1s ease-in-out;
+}
+
+/* Smooth Page Transitions */
+body {
+    opacity: 1;
+    transition: opacity 0.1s ease-in-out;
+}
+
+body.page-transition {
+    opacity: 0;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Search Bar (Sticky on Mobile) -->
+    <div class="search-container mb-4">
+        <form action="{{ url_for('blog') }}" method="GET" class="d-flex gap-2">
+            <div class="input-group">
+                <input type="text" 
+                       name="q" 
+                       class="form-control search-input" 
+                       placeholder="Search blog posts..." 
+                       value="{{ request.args.get('q', '') }}"
+                       aria-label="Search blog posts">
+                <button class="btn search-btn" type="submit" 
+                        style="color: var(--primary-color); border-color: var(--primary-color);">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="row">
+        <!-- Main Content Area -->
+        <div class="col-md-9 order-md-2">
+            <div id="postsContainer">
+                {% if posts %}
+                    {% for post in posts %}
+                    <div class="card shadow-sm mb-4 post-card">
+                        <div class="card-body">
+                            <h2 class="card-title">{{ post.title }}</h2>
+                            {% if post.summary %}
+                                <p class="card-text">{{ post.summary }}</p>
+                            {% else %}
+                                <p class="card-text">{{ post.content|striptags|truncate(200) }}</p>
+                            {% endif %}
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <a href="{{ url_for('post', post_id=post.id) }}" class="btn btn-primary">Read More</a>
+                                </div>
+                                <small class="text-muted">{{ post.date_posted.strftime('%B %d, %Y') }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Pagination Controls -->
+                    {% if pagination.pages > 1 %}
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center">
+                            <!-- Previous Page -->
+                            {% if pagination.has_prev %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('blog', page=pagination.prev_num, category=request.args.get('category'), tag=request.args.get('tag'), q=request.args.get('q')) }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link" aria-hidden="true">&laquo;</span>
+                                </li>
+                            {% endif %}
+
+                            <!-- Page Numbers -->
+                            {% for page_num in pagination.iter_pages(left_edge=2, left_current=2, right_current=2, right_edge=2) %}
+                                {% if page_num %}
+                                    {% if page_num == pagination.page %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ page_num }}</span>
+                                        </li>
+                                    {% else %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ url_for('blog', page=page_num, category=request.args.get('category'), tag=request.args.get('tag'), q=request.args.get('q')) }}">{{ page_num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            <!-- Next Page -->
+                            {% if pagination.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('blog', page=pagination.next_num, category=request.args.get('category'), tag=request.args.get('tag'), q=request.args.get('q')) }}" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link" aria-hidden="true">&raquo;</span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info">
+                        {% if request.args.get('q') %}
+                            No posts found matching "{{ request.args.get('q') }}". Try a different search term.
+                        {% elif request.args.get('category') %}
+                            No posts found in this category.
+                        {% else %}
+                            No posts available.
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar for Desktop -->
+        <div class="col-md-3 order-md-1 d-none d-md-block">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background-color: var(--primary-color); color: var(--text-light);">
+                    <h5 class="mb-0" style="color: var(--text-light);"><i class="fas fa-filter me-2"></i>Filters</h5>
+                    {% if current_user.is_authenticated %}
+                    <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="card-body p-0">
+                    <div class="filter-section">
+                        <h5 style="color: var(--primary-color); padding: 1rem; margin: 0; border-bottom: 1px solid var(--border-color); background-color: var(--bg-dark); color: var(--text-light);">Categories</h5>
+                        <div class="category-list mb-3">
+                            <a href="{{ url_for('blog') }}" 
+                               class="list-group-item list-group-item-action d-flex justify-content-between align-items-center 
+                                      {% if not request.args.get('category') %}active{% endif %}"
+                               style="{% if not request.args.get('category') %}background-color: var(--primary-color); color: var(--text-light);{% endif %}; padding-left: 1rem;">
+                                <span><i class="fas fa-globe me-2"></i>All Posts</span>
+                                <span class="badge rounded-pill" style="background-color: {% if not request.args.get('category') %}var(--text-light); color: var(--primary-color){% else %}var(--primary-color); color: var(--text-light){% endif %}">
+                                    {{ posts|length }}
+                                </span>
+                            </a>
+                            {% for category in categories %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center 
+                                      {% if request.args.get('category')|string == category.id|string %}active{% endif %}"
+                                 style="{% if request.args.get('category')|string == category.id|string %}background-color: var(--primary-color); color: var(--text-light);{% endif %}">
+                                <a href="{{ url_for('blog', category=category.id) }}" 
+                                   class="text-decoration-none flex-grow-1 {% if request.args.get('category')|string == category.id|string %}text-white{% else %}text-dark{% endif %}"
+                                   style="padding-left: 1rem;">
+                                    <span><i class="fas fa-folder me-2"></i>{{ category.name }}</span>
+                                    <span class="badge rounded-pill" style="background-color: {% if request.args.get('category')|string == category.id|string %}var(--text-light); color: var(--primary-color){% else %}var(--primary-color); color: var(--text-light){% endif %}">
+                                        {{ category.posts|length }}
+                                    </span>
+                                </a>
+                                {% if current_user.is_authenticated %}
+                                <button onclick="deleteCategory({{ category.id }}, '{{ category.name }}')" 
+                                        class="btn btn-sm {% if request.args.get('category')|string == category.id|string %}btn-light{% else %}btn-outline-danger{% endif %} ms-2 mx-2 my-1"
+                                        {% if category.posts|length > 0 %}disabled title="Cannot delete category with posts"{% endif %}>
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Filter Button -->
+    <button type="button" class="btn btn-primary d-md-none filters-btn shadow" 
+            data-bs-toggle="modal" data-bs-target="#filtersModal"
+            style="background-color: #2C3E50 !important; border-color: #2C3E50 !important;">
+        <i class="fas fa-filter" style="color: var(--text-light);"></i>
+    </button>
+
+    <!-- Filters Modal for Mobile -->
+    <div class="modal fade" id="filtersModal" tabindex="-1">
+        <div class="modal-dialog modal-fullscreen-sm-down">
+            <div class="modal-content">
+                <div class="modal-header" style="background-color: var(--primary-color);">
+                    <h5 class="modal-title" style="color: var(--text-light);">
+                        <i class="fas fa-filter me-2"></i>Filters
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <!-- Categories Section -->
+                    <div class="card shadow-sm">
+                        <div class="card-body p-0">
+                            {% if current_user.is_authenticated %}
+                            <div class="d-flex justify-content-end p-2" style="background-color: var(--primary-color);">
+                                <button class="btn btn-sm btn-light" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            {% endif %}
+                            <div class="filter-section">
+                                <h5 style="color: var(--primary-color); padding: 1rem; margin: 0; border-bottom: 1px solid var(--border-color); background-color: var(--bg-dark); color: var(--text-light);">Categories</h5>
+                                <div class="category-list mb-3">
+                                    <a href="{{ url_for('blog') }}" 
+                                       onclick="window.location.href=this.href; return false;"
+                                       class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {% if not request.args.get('category') %}active{% endif %}"
+                                       style="{% if not request.args.get('category') %}background-color: var(--primary-color); color: var(--text-light);{% endif %}; padding-left: 1rem;">
+                                        <span><i class="fas fa-globe me-2"></i>All Posts</span>
+                                        <span class="badge rounded-pill" style="background-color: {% if not request.args.get('category') %}var(--text-light); color: var(--primary-color){% else %}var(--primary-color); color: var(--text-light){% endif %}">
+                                            {{ total_posts }}
+                                        </span>
+                                    </a>
+                                    {% for category in categories %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center 
+                                              {% if request.args.get('category')|string == category.id|string %}active{% endif %}"
+                                           style="{% if request.args.get('category')|string == category.id|string %}background-color: var(--primary-color); color: var(--text-light);{% endif %}; padding-left: 1rem;">
+                                        <a href="{{ url_for('blog', category=category.id) }}" 
+                                           onclick="window.location.href=this.href; return false;"
+                                           class="text-decoration-none flex-grow-1 {% if request.args.get('category')|string == category.id|string %}text-white{% else %}text-dark{% endif %}">
+                                            <span><i class="fas fa-folder me-2"></i>{{ category.name }}</span>
+                                            <span class="badge rounded-pill" style="background-color: {% if request.args.get('category')|string == category.id|string %}var(--text-light); color: var(--primary-color){% else %}var(--primary-color); color: var(--text-light){% endif %}">
+                                                {{ category.posts|length }}
+                                            </span>
+                                        </a>
+                                        {% if current_user.is_authenticated %}
+                                        <button onclick="deleteCategory({{ category.id }}, '{{ category.name }}')" 
+                                                class="btn btn-sm {% if request.args.get('category')|string == category.id|string %}btn-light{% else %}btn-outline-danger{% endif %} ms-2 mx-2 my-1"
+                                                {% if category.posts|length > 0 %}disabled title="Cannot delete category with posts"{% endif %}>
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Category Modal -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="categoryName" class="form-label">Category Name</label>
+                        <input type="text" class="form-control" id="categoryName">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="createCategory()">Add Category</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function deleteCategory(categoryId, categoryName) {
+    Swal.fire({
+        title: 'Delete Category?',
+        text: `Are you sure you want to delete "${categoryName}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/admin/category/${categoryId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.message || 'Failed to delete category');
+                }
+                return data;
+            })
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Deleted!',
+                        text: data.message || 'Category deleted successfully',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    throw new Error(data.message || 'Failed to delete category');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: error.message || 'An error occurred while deleting the category',
+                    icon: 'error'
+                });
+            });
+        }
+    });
+}
+
+function createCategory() {
+    const categoryName = document.getElementById('categoryName').value.trim();
+    if (!categoryName) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Please enter a category name',
+            icon: 'error'
+        });
+        return;
+    }
+
+    fetch('{{ url_for("admin.create_category") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `name=${encodeURIComponent(categoryName)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: 'Success!',
+                text: data.message,
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                // Close modal and clear input
+                document.getElementById('categoryName').value = '';
+                bootstrap.Modal.getInstance(document.getElementById('addCategoryModal')).hide();
+                
+                // Refresh the page
+                window.location.reload();
+            });
+        } else {
+            Swal.fire({
+                title: 'Error!',
+                text: data.message || 'Failed to create category',
+                icon: 'error'
+            });
+        }
+    })
+    .catch(error => {
+        Swal.fire({
+            title: 'Error!',
+            text: 'An error occurred while creating the category',
+            icon: 'error'
+        });
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+    const postsContainer = document.getElementById('postsContainer');
+    let noResultsAlert = null;
+
+    function performSearch() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const posts = postsContainer.querySelectorAll('article');
+        let found = false;
+
+        posts.forEach(post => {
+            const title = post.querySelector('.card-title').textContent.toLowerCase();
+            const content = post.dataset.content ? post.dataset.content.toLowerCase() : '';
+            const summary = post.querySelector('.card-text')?.textContent.toLowerCase() || '';
+            const tags = post.dataset.tags ? post.dataset.tags.toLowerCase() : '';
+
+            if (searchTerm === '' || 
+                title.includes(searchTerm) || 
+                content.includes(searchTerm) || 
+                summary.includes(searchTerm) || 
+                tags.includes(searchTerm)) {
+                post.style.display = '';
+                found = true;
+            } else {
+                post.style.display = 'none';
+            }
+        });
+
+        // Handle no results message
+        if (!found && searchTerm !== '') {
+            if (!noResultsAlert) {
+                noResultsAlert = document.createElement('div');
+                noResultsAlert.className = 'alert alert-info mt-3';
+                noResultsAlert.innerHTML = '<i class="fas fa-search me-2"></i>No posts found matching your search.';
+                postsContainer.appendChild(noResultsAlert);
+            }
+            noResultsAlert.style.display = '';
+        } else if (noResultsAlert) {
+            noResultsAlert.style.display = 'none';
+        }
+    }
+
+    // Search on input with debounce
+    let debounceTimeout;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(debounceTimeout);
+        debounceTimeout = setTimeout(performSearch, 300);
+    });
+
+    // Search on button click
+    searchButton.addEventListener('click', performSearch);
+
+    // Search on Enter key
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performSearch();
+        }
+    });
+});
+
+// Handle smooth page transitions
+document.addEventListener('DOMContentLoaded', function() {
+    // Add transition class to links that navigate to different pages
+    document.querySelectorAll('a[href]').forEach(link => {
+        if (link.hostname === window.location.hostname) {
+            link.addEventListener('click', function(e) {
+                if (!e.ctrlKey && !e.shiftKey && !e.metaKey && !e.altKey) {
+                    e.preventDefault();
+                    document.body.classList.add('page-transition');
+                    setTimeout(() => {
+                        window.location.href = this.href;
+                    }, 100);
+                }
+            });
+        }
+    });
+
+    // Handle browser back/forward buttons
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            document.body.classList.remove('page-transition');
+        }
+    });
+
+    // Remove transition class when page loads
+    document.body.classList.remove('page-transition');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Project{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h1 class="card-title mb-4">Edit Project</h1>
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Project Title *</label>
+                            <input type="text" class="form-control" id="title" name="title" value="{{ project.title }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description *</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" required>{{ project.description }}</textarea>
+                            <div class="form-text">Describe your project in detail. You can use markdown for formatting.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="project_image" class="form-label">Project Media</label>
+                            {% if project.image_path %}
+                            <div class="mb-2">
+                                <p class="mb-2">Current media:</p>
+                                {% if project.image_path.endswith(('.mp4', '.webm')) %}
+                                <video style="max-width: 300px; max-height: 200px;" controls muted>
+                                    <source src="{{ url_for('static', filename=project.image_path) }}" 
+                                            type="video/{{ project.image_path.split('.')[-1] }}">
+                                    Your browser does not support the video tag.
+                                </video>
+                                {% else %}
+                                <img src="{{ url_for('static', filename=project.image_path) }}" 
+                                     alt="Current project media" 
+                                     style="max-width: 300px; max-height: 200px;">
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="project_image" name="project_image" 
+                                   accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/webm">
+                            <div class="form-text">
+                                Upload an image, GIF, or short video to showcase your project.<br>
+                                Images: PNG, JPG, JPEG, GIF, WEBP (max 10MB)<br>
+                                Videos: MP4, WebM (max 50MB, no audio needed)<br>
+                                Recommended dimensions: 800x600 pixels
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="project_url" class="form-label">Project URL</label>
+                            <input type="url" class="form-control" id="project_url" name="project_url" value="{{ project.project_url }}">
+                            <div class="form-text">The URL where your project is deployed or can be viewed.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="source_code_url" class="form-label">Source Code URL</label>
+                            <input type="url" class="form-control" id="source_code_url" name="source_code_url" value="{{ project.source_code_url }}">
+                            <div class="form-text">Link to your project's source code (e.g., GitHub repository).</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin.manage_projects') }}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('project_image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const isVideo = file.type.startsWith('video/');
+        const maxSize = isVideo ? 50 * 1024 * 1024 : 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert(`File size must be less than ${isVideo ? '50MB' : '10MB'}`);
+            this.value = '';
+        }
+    }
+});
+</script>
+{% endblock %}

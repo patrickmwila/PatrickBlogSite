@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Create Project{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h1 class="card-title mb-4">Create New Project</h1>
+
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Project Title *</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description *</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                            <div class="form-text">Describe your project in detail. You can use markdown for formatting.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="project_image" class="form-label">Project Media</label>
+                            <input type="file" class="form-control" id="project_image" name="project_image" 
+                                   accept="image/png,image/jpeg,image/gif,image/webp,video/mp4,video/webm">
+                            <div class="form-text">
+                                Upload an image, GIF, or short video to showcase your project.<br>
+                                Images: PNG, JPG, JPEG, GIF, WEBP (max 10MB)<br>
+                                Videos: MP4, WebM (max 50MB, no audio needed)<br>
+                                Recommended dimensions: 800x600 pixels
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="project_url" class="form-label">Project URL</label>
+                            <input type="url" class="form-control" id="project_url" name="project_url" placeholder="https://example.com">
+                            <div class="form-text">The URL where the live project can be viewed (optional).</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="source_code_url" class="form-label">Source Code URL</label>
+                            <input type="url" class="form-control" id="source_code_url" name="source_code_url" placeholder="https://github.com/username/project">
+                            <div class="form-text">Link to the project's source code repository (optional).</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin.manage_projects') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Projects
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Create Project
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('project_image').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        if (file.size > 50 * 1024 * 1024) {
+            alert('File size must be less than 50MB');
+            this.value = '';
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,65 @@
+.video-container:hover .video-overlay {
+    opacity: 0;
+}
+
+.video-overlay {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    transition: opacity 0.3s ease;
+}
+
+.video-container {
+    background: #f8f9fa;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.video-play-button {
+    background: rgba(0, 0, 0, 0.5);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
+
+.video-container:hover .video-play-button {
+    transform: scale(1.1) translate(-45%, -45%);
+}
+
+.video-preview.playing .video-play-button {
+    display: none;
+}
+
+.video-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.video-modal.active {
+    display: flex;
+}
+
+.video-modal video {
+    max-width: 90%;
+    max-height: 90vh;
+}
+
+.video-modal .close-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+}

@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}Patrick Mwila - Software Developer{% endblock %}
+
+{% block styles %}
+<style>
+    .hero-section {
+        background-color: var(--bg-dark);
+        color: var(--text-light);
+        padding: 5rem 0;
+        margin-bottom: 4rem;
+    }
+
+    .hero-content {
+        max-width: 800px;
+        margin: 0 auto;
+        text-align: center;
+    }
+
+    .hero-title {
+        font-size: 2.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1.25rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+    }
+
+    .cta-button {
+        display: inline-block;
+        padding: 0.8rem 2rem;
+        background-color: var(--primary-color);
+        color: var(--text-light);
+        text-decoration: none;
+        border-radius: 5px;
+        transition: all 0.1s ease-in-out;
+    }
+
+    .cta-button:hover {
+        background-color: #2C3E50;
+        transform: translateY(-2px);
+        color: var(--text-light);
+    }
+
+    .recent-posts {
+        padding: 4rem 0;
+    }
+
+    .post-card {
+        height: 100%;
+        transition: all 0.1s ease-in-out;
+    }
+
+    .post-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+
+    .post-image {
+        height: 200px;
+        object-fit: cover;
+    }
+
+    .skills-section {
+        background-color: var(--bg-light);
+        padding: 4rem 0;
+    }
+
+    .skill-icon {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+
+    .skill-card {
+        height: 100%;
+        transition: all 0.1s ease-in-out;
+    }
+
+    .skill-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="hero-content">
+            <h1 class="hero-title">Hi, I'm Patrick Mwila</h1>
+            <p class="hero-subtitle">Software Developer & ICT Professional</p>
+            <a href="{{ url_for('contact_page') }}" class="cta-button">Get in Touch</a>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Blog Posts -->
+<section class="recent-posts">
+    <div class="container">
+        <h2 class="text-center mb-4">Recent Blog Posts</h2>
+        <div class="row g-4">
+            {% for post in recent_posts %}
+            <div class="col-md-4">
+                <div class="card post-card shadow-sm h-100">
+                    {% if post.image_file %}
+                    <img src="{{ url_for('static', filename='uploads/' + post.image_file) }}" class="card-img-top post-image" alt="{{ post.title }}">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ post.title }}</h5>
+                        <p class="card-text">{{ post.content[:150] }}...</p>
+                        <a href="{{ url_for('post', post_id=post.id) }}" class="btn btn-primary">Read More</a>
+                    </div>
+                    <div class="card-footer text-muted">
+                        {{ post.date_posted.strftime('%B %d, %Y') }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('blog_posts') }}" class="btn btn-outline-primary">View All Posts</a>
+        </div>
+    </div>
+</section>
+
+<!-- Skills Section -->
+<section class="skills-section">
+    <div class="container">
+        <h2 class="text-center mb-4">What I Do</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card skill-card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-code skill-icon"></i>
+                        <h5 class="card-title">Software Development</h5>
+                        <p class="card-text">Building efficient and scalable applications using modern technologies and best practices.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card skill-card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-server skill-icon"></i>
+                        <h5 class="card-title">System Administration</h5>
+                        <p class="card-text">Managing and optimizing IT infrastructure to ensure smooth operations and security.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card skill-card shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-laptop-code skill-icon"></i>
+                        <h5 class="card-title">Web Solutions</h5>
+                        <p class="card-text">Creating responsive and user-friendly web applications with modern frameworks.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

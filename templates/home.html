@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Hero Section -->
+    <section class="py-5">
+        <div class="jumbotron bg-light shadow-sm rounded p-4 mb-5">
+            <div class="text-center">
+                <div class="profile-image-container mb-4">
+                    <img src="{{ url_for('static', filename='images/profile.png') }}" alt="Profile Picture" class="profile-image rounded-circle shadow" style="width: 200px; height: 200px; object-fit: cover;">
+                </div>
+                <h1 class="display-4">Tech Enthusiast, Researcher & Teacher</h1>
+                <p class="lead text-muted">I'm Patrick Mwila, an ICT professional passionate about technology, innovation, and continuous learning. I work for and provide services to The Information and Communications Technology Association of Zambia (ICTAZ).</p>
+                <p>
+                    <a href="{{ url_for('about') }}" class="btn btn-primary my-2">Learn More About Me</a>
+                    <a href="{{ url_for('projects') }}" class="btn btn-secondary my-2">View My Projects</a>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Blog Posts Section -->
+    <section class="mb-5">
+        <h2 class="text-center mb-4">Recent Blog Posts</h2>
+        <div class="row">
+            {% for post in posts[:3] %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ post.title }}</h5>
+                        <p class="card-text text-muted small">{{ post.date_posted.strftime('%B %d, %Y') }}</p>
+                        <p class="card-text">{{ post.content|striptags|truncate(150) }}</p>
+                        <a href="{{ url_for('post', post_id=post.id) }}" class="btn btn-primary">Read More</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('blog') }}" class="btn btn-primary">View All Posts</a>
+        </div>
+    </section>
+
+    <!-- Featured Projects Section -->
+    <section class="mb-5">
+        <h2 class="text-center mb-4">Featured Projects</h2>
+        <div class="row">
+            {% for project in projects[:3] %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    {% if project.image_path %}
+                        {% if project.image_path.endswith(('.mp4', '.webm')) %}
+                        <div class="video-container">
+                            <video class="card-img-top" 
+                                   style="height: 250px; object-fit: cover;"
+                                   loop>
+                                <source src="{{ url_for('static', filename=project.image_path) }}" 
+                                        type="video/{{ project.image_path.split('.')[-1] }}">
+                                Your browser does not support the video tag.
+                            </video>
+                            <div class="video-overlay">
+                                <div class="play-button">
+                                    <i class="fas fa-play"></i>
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <img src="{{ url_for('static', filename=project.image_path) }}" 
+                             class="card-img-top" 
+                             alt="{{ project.title }}"
+                             style="height: 200px; object-fit: cover;">
+                        {% endif %}
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ project.title }}</h5>
+                        <p class="card-text">{{ project.description[:100] }}{% if project.description|length > 100 %}...{% endif %}</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            {% if project.project_url %}
+                            <a href="{{ project.project_url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                <i class="fas fa-external-link-alt me-1"></i>View Project
+                            </a>
+                            {% endif %}
+                            {% if project.source_code_url %}
+                            <a href="{{ project.source_code_url }}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                                <i class="fab fa-github me-1"></i>Source Code
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('projects') }}" class="btn btn-primary">View All Projects</a>
+        </div>
+    </section>
+</div>
+{% endblock %}

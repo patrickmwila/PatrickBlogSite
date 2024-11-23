@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+
+{% block title %}Create Post{% endblock %}
+
+{% block head %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.tiny.cloud/1/hpq2lkcagwnqx0sgban81itg04cqwl7aylw5x9elq1jdasso/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+  tinymce.init({
+    selector: '#content',
+    plugins: 'anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount code',
+    toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table | align lineheight | numlist bullist indent outdent | emoticons charmap | removeformat | code',
+    height: 500,
+    menubar: true,
+    file_picker_types: 'image',
+    automatic_uploads: true,
+    images_upload_url: '/admin/upload-image',
+    images_upload_handler: function (blobInfo, progress) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.withCredentials = false;
+        xhr.open('POST', '/admin/upload-image');
+
+        xhr.upload.onprogress = (e) => {
+          progress(e.loaded / e.total * 100);
+        };
+
+        xhr.onload = function() {
+          if (xhr.status === 403) {
+            reject({ message: 'HTTP Error: ' + xhr.status, remove: true });
+            return;
+          }
+          if (xhr.status < 200 || xhr.status >= 300) {
+            try {
+              const response = JSON.parse(xhr.responseText);
+              reject(response.error || 'HTTP Error: ' + xhr.status);
+            } catch(e) {
+              reject('HTTP Error: ' + xhr.status);
+            }
+            return;
+          }
+
+          const json = JSON.parse(xhr.responseText);
+          if (!json || typeof json.location != 'string') {
+            reject('Invalid JSON: ' + xhr.responseText);
+            return;
+          }
+          resolve(json.location);
+        };
+
+        xhr.onerror = function () {
+          reject('Image upload failed due to a network error');
+        };
+
+        const formData = new FormData();
+        formData.append('file', blobInfo.blob(), blobInfo.filename());
+        xhr.send(formData);
+      });
+    },
+    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 16px; } img { max-width: 100%; height: auto; }',
+    image_dimensions: false,
+    image_class_list: [
+      { title: 'Responsive', value: 'img-fluid' }
+    ],
+    image_uploadtab: true,
+    file_picker_callback: function(callback, value, meta) {
+      // Provide image and alt text for the image dialog
+      if (meta.filetype === 'image') {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.setAttribute('accept', 'image/*');
+
+        input.onchange = function() {
+          const file = this.files[0];
+          
+          if (file.size > 10 * 1024 * 1024) { // 10MB
+            alert('File size too large. Maximum size is 10MB.');
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = function () {
+            const id = 'blobid' + (new Date()).getTime();
+            const blobCache = tinymce.activeEditor.editorUpload.blobCache;
+            const base64 = reader.result.split(',')[1];
+            const blobInfo = blobCache.create(id, file, base64);
+            blobCache.add(blobInfo);
+
+            callback(blobInfo.blobUri(), { title: file.name });
+          };
+          reader.readAsDataURL(file);
+        };
+
+        input.click();
+      }
+    }
+  });
+</script>
+<style>
+.category-section {
+    position: relative;
+}
+.add-category-btn {
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+.modal-header, .modal-footer {
+    border: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Create New Post</h2>
+    <form id="createPostForm" method="POST" action="{{ url_for('admin.create_post') }}" class="mt-4" onsubmit="return handlePostSubmit(event)">
+        <div class="mb-3">
+            <label for="title" class="form-label">Title</label>
+            <input type="text" class="form-control" id="title" name="title" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="summary" class="form-label">Summary</label>
+            <textarea class="form-control" id="summary" name="summary" rows="3"></textarea>
+        </div>
+
+        <div class="mb-3 category-section">
+            <label for="category" class="form-label">Category</label>
+            <button type="button" class="btn btn-sm btn-outline-primary add-category-btn" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                <i class="fas fa-plus"></i> Add Category
+            </button>
+            <select class="form-select" id="category" name="category" required>
+                <option value="">Select a category</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="tags" class="form-label">Tags</label>
+            <input type="text" class="form-control" id="tags" name="tags" placeholder="Enter tags separated by commas">
+            <small class="text-muted">Example: python, flask, web-development</small>
+        </div>
+
+        <div class="mb-3">
+            <label for="content" class="form-label">Content</label>
+            <textarea class="form-control" id="content" name="content"></textarea>
+        </div>
+
+        <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="draft" name="draft">
+            <label class="form-check-label" for="draft">Save as draft</label>
+        </div>
+
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">Create Post</button>
+            <a href="{{ url_for('admin.manage_posts') }}" class="btn btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="categoryName" class="form-label">Category Name</label>
+                    <input type="text" class="form-control" id="categoryName">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createCategory()">Add Category</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function handlePostSubmit(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+
+    fetch(form.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: 'Success!',
+                text: data.message,
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.href = data.redirect_url;
+            });
+        } else {
+            Swal.fire({
+                title: 'Error!',
+                text: data.message || 'Failed to create post',
+                icon: 'error'
+            });
+        }
+    })
+    .catch(error => {
+        Swal.fire({
+            title: 'Error!',
+            text: 'An error occurred while creating the post',
+            icon: 'error'
+        });
+    });
+
+    return false;
+}
+
+function createCategory() {
+    const name = document.getElementById('categoryName').value.trim();
+    if (!name) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Please enter a category name',
+            icon: 'error'
+        });
+        return;
+    }
+
+    fetch('{{ url_for("admin.create_category") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `name=${encodeURIComponent(name)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: 'Success!',
+                text: data.message,
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                // Update category dropdown
+                const categorySelect = document.getElementById('category');
+                const option = new Option(name, data.category_id);
+                categorySelect.add(option);
+                categorySelect.value = data.category_id;
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('addCategoryModal'));
+                modal.hide();
+            });
+        } else {
+            Swal.fire({
+                title: 'Error!',
+                text: data.message || 'Failed to create category',
+                icon: 'error'
+            });
+        }
+    })
+    .catch(error => {
+        Swal.fire({
+            title: 'Error!',
+            text: 'An error occurred while creating the category',
+            icon: 'error'
+        });
+    });
+}
+</script>
+{% endblock %}
